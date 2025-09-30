@@ -1,0 +1,31 @@
+# Vivado project files
+*.jou
+*.log
+*.str
+*.wdb
+*.xpr
+
+# Vivado build output directories
+*.runs/
+*.sim/
+*.cache/
+*.hw/
+*.ip_user_files/
+*.xilinx/
+
+# Checkpoints and generated design files
+*.dcp
+*.bit
+*.bin
+*.mmi
+
+# Simulation artifacts
+*.vcd
+*.saif
+*.wcfg
+*.wave
+
+# Other temporary files
+*.tmp
+*.backup
+*.bak
