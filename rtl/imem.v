@@ -20,12 +20,19 @@
 //////////////////////////////////////////////////////////////////////////////////
 
 
-module imem(
+module imem
+    #(
+        parameter DEPTH = 256, 
+        parameter INIT_FILE = ""
+    )
+    (
         input wire [31:0] pc,
         output wire [31:0] instr
     );
     
     reg [31:0] instructions [255:0];
+    
+    initial if(INIT_FILE != "") $readmemh(INIT_FILE, instructions); 
     
     assign instr = instructions[ pc[31:2] ]; //pc[31:2] == pc >> 2;
 endmodule
