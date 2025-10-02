@@ -29,6 +29,6 @@
 *.tmp
 *.backup
 *.bak
-
+*.debug
 
 /dfx_runtime.txt
