@@ -114,9 +114,23 @@ module decoder(
                 case(funct3)
                     3'b000: begin alu_ctrl_r = ALU_ADD; illegal_r = 1'b0; end
                     3'b010: begin alu_ctrl_r = ALU_SLT; illegal_r = 1'b0; end
+                    3'b011: begin alu_ctrl_r = ALU_SLTU; illegal_r = 1'b0; end
                     3'b100: begin alu_ctrl_r = ALU_XOR; illegal_r = 1'b0; end
                     3'b110: begin alu_ctrl_r = ALU_OR; illegal_r = 1'b0; end
                     3'b111: begin alu_ctrl_r = ALU_AND; illegal_r = 1'b0; end
+                    
+                    3'b001: begin
+                        if(instr[31:25] == 7'b0000000) alu_ctrl_r = ALU_SLL; 
+                        else illegal_r = 1'b1;
+                    end
+                    
+                    3'b101: begin
+                        if(instr[31:25] == 7'b0000000) alu_ctrl_r = ALU_SRL; 
+                        else if(instr[31:25] == 7'b0100000) alu_ctrl_r = ALU_SRA;
+                        else illegal_r = 1'b1;
+                    end
+                    
+                    default: illegal_r = 1'b1; 
                 endcase
             end           
 //            LOAD_OPCODE: begin
