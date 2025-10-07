@@ -27,6 +27,7 @@ module immgen(
     
     localparam [6:0]
         I_TYPE_OPCODE = 7'b0010011, 
+        S_TYPE_OPCODE = 7'b0100011,
         LW_OPCODE = 7'b0000011, 
         JALR_OPCODE = 7'b1100111; 
     
@@ -36,9 +37,11 @@ module immgen(
         case(instr[6:0])
             I_TYPE_OPCODE, 
             LW_OPCODE,
-            JALR_OPCODE: imm_out_r = { {20{instr[31]}}, instr[31:20] }; 
+            JALR_OPCODE: imm_out_r = { {20{instr[31]}}, instr[31:20] };
             
-            default: imm_out_r = 32'b0; 
+            S_TYPE_OPCODE: imm_out_r = { {20{instr[31]}}, instr[31:25] , instr[11:7]};
+            
+            default: imm_out_r = 32'b0;
         endcase
     end
     
