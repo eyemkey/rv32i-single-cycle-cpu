@@ -30,7 +30,7 @@ module regfile(
         input wire [4:0] rs2_addr, 
         input wire [4:0] rd_addr,
         output wire [31:0] rs1_rdata, 
-        output wire [31:0] rs2_rdata,
+        output wire [31:0] rs2_rdata
     );
     
     
