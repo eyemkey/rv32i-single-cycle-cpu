@@ -29,6 +29,7 @@ module decoder(
     output wire [6:0]  funct7, 
     output wire        RegWrite, 
     output wire [3:0]  ALUOp, 
+    output wire        alu_src_ctrl, 
     output wire        illegal
 );
 
@@ -41,7 +42,12 @@ module decoder(
     assign funct7 = instr[31:25];          // 7-bit
 
     // --- Encodings ---
-    localparam [6:0] R_TYPE_OPCODE = 7'b0110011;
+    localparam [6:0] 
+        R_TYPE_OPCODE = 7'b0110011, 
+        I_TYPE_OPCODE = 7'bb0010011,
+        LOAD_OPCODE = 7'b0000011,
+        JALR_OPCODE = 7'b1100111; 
+        
 
     localparam [3:0]
         ALU_ADD  = 4'd0,
@@ -59,6 +65,7 @@ module decoder(
     reg        reg_write_r; 
     reg [3:0]  alu_ctrl_r; 
     reg        illegal_r; 
+    reg        alu_src_r; 
     
     always @* begin
         // Safe defaults
@@ -66,41 +73,64 @@ module decoder(
         alu_ctrl_r  = ALU_INV; 
         illegal_r   = 1'b1; 
 
-        if (opcode == R_TYPE_OPCODE) begin
-            reg_write_r = 1'b1; // R-type writes rd
-            case (funct3)
-                3'b000: begin // ADD / SUB
-                    if      (funct7 == 7'b0000000) begin alu_ctrl_r = ALU_ADD;  illegal_r = 1'b0; end
-                    else if (funct7 == 7'b0100000) begin alu_ctrl_r = ALU_SUB;  illegal_r = 1'b0; end
-                end         
-                3'b001: begin // SLL
-                    if (funct7 == 7'b0000000) begin alu_ctrl_r = ALU_SLL;  illegal_r = 1'b0; end 
-                end
-                3'b010: begin // SLT
-                    if (funct7 == 7'b0000000) begin alu_ctrl_r = ALU_SLT;  illegal_r = 1'b0; end
-                end
-                3'b011: begin // SLTU
-                    if (funct7 == 7'b0000000) begin alu_ctrl_r = ALU_SLTU; illegal_r = 1'b0; end
-                end
-                3'b100: begin // XOR
-                    if (funct7 == 7'b0000000) begin alu_ctrl_r = ALU_XOR;  illegal_r = 1'b0; end 
-                end
-                3'b101: begin // SRL / SRA
-                    if      (funct7 == 7'b0000000) begin alu_ctrl_r = ALU_SRL;  illegal_r = 1'b0; end 
-                    else if (funct7 == 7'b0100000) begin alu_ctrl_r = ALU_SRA;  illegal_r = 1'b0; end
-                end
-                3'b110: begin // OR
-                    if (funct7 == 7'b0000000) begin alu_ctrl_r = ALU_OR;   illegal_r = 1'b0; end
-                end
-                3'b111: begin // AND
-                    if (funct7 == 7'b0000000) begin alu_ctrl_r = ALU_AND;  illegal_r = 1'b0; end
-                end
-                default: ; // keep invalid
-            endcase  
-        end
+        case (opcode)
+            R_TYPE_OPCODE: begin
+                reg_write_r = 1'b1; // R-type writes rd
+                alu_src_r = 1'b0; 
+                case (funct3)
+                    3'b000: begin // ADD / SUB
+                        if      (funct7 == 7'b0000000) begin alu_ctrl_r = ALU_ADD;  illegal_r = 1'b0; end
+                        else if (funct7 == 7'b0100000) begin alu_ctrl_r = ALU_SUB;  illegal_r = 1'b0; end
+                    end         
+                    3'b001: begin // SLL
+                        if (funct7 == 7'b0000000) begin alu_ctrl_r = ALU_SLL;  illegal_r = 1'b0; end 
+                    end
+                    3'b010: begin // SLT
+                        if (funct7 == 7'b0000000) begin alu_ctrl_r = ALU_SLT;  illegal_r = 1'b0; end
+                    end
+                    3'b011: begin // SLTU
+                        if (funct7 == 7'b0000000) begin alu_ctrl_r = ALU_SLTU; illegal_r = 1'b0; end
+                    end
+                    3'b100: begin // XOR
+                        if (funct7 == 7'b0000000) begin alu_ctrl_r = ALU_XOR;  illegal_r = 1'b0; end 
+                    end
+                    3'b101: begin // SRL / SRA
+                        if      (funct7 == 7'b0000000) begin alu_ctrl_r = ALU_SRL;  illegal_r = 1'b0; end 
+                        else if (funct7 == 7'b0100000) begin alu_ctrl_r = ALU_SRA;  illegal_r = 1'b0; end
+                    end
+                    3'b110: begin // OR
+                        if (funct7 == 7'b0000000) begin alu_ctrl_r = ALU_OR;   illegal_r = 1'b0; end
+                    end
+                    3'b111: begin // AND
+                        if (funct7 == 7'b0000000) begin alu_ctrl_r = ALU_AND;  illegal_r = 1'b0; end
+                    end
+                    default: ; // keep invalid
+                endcase
+            end
+            
+            I_TYPE_OPCODE: begin
+                reg_write_r = 1'b1; 
+                alu_src_r = 1'b1;
+                case(funct3)
+                    3'b000: begin alu_ctrl_r = ALU_ADD; illegal_r = 1'b0; end
+                    3'b010: begin alu_ctrl_r = ALU_SLT; illegal_r = 1'b0; end
+                    3'b100: begin alu_ctrl_r = ALU_XOR; illegal_r = 1'b0; end
+                    3'b110: begin alu_ctrl_r = ALU_OR; illegal_r = 1'b0; end
+                    3'b111: begin alu_ctrl_r = ALU_AND; illegal_r = 1'b0; end
+                endcase
+            end           
+//            LOAD_OPCODE: begin
+                
+//            end
+//            JALR_OPCODE: begin
+            
+//            end
+        endcase       
+        
     end    
 
     assign RegWrite = reg_write_r; 
     assign ALUOp    = alu_ctrl_r;
     assign illegal  = illegal_r; 
+    assign alu_src_ctrl = alu_src_r; 
 endmodule

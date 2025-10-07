@@ -22,7 +22,7 @@
 
 module immgen(
         input wire [31:0] instr, 
-        output reg [31:0] imm_out
+        output wire [31:0] imm_out
     );
     
     localparam [6:0]
@@ -30,13 +30,17 @@ module immgen(
         LW_OPCODE = 7'b0000011, 
         JALR_OPCODE = 7'b1100111; 
     
+    reg [31:0] imm_out_r; 
+    
     always @(*) begin
         case(instr[6:0])
             I_TYPE_OPCODE, 
             LW_OPCODE,
-            JALR_OPCODE: imm_out = { {20{instr[31]}}, instr[31:20]}; 
+            JALR_OPCODE: imm_out_r = { {20{instr[31]}}, instr[31:20] }; 
             
-            default: imm_out = 32'b0; 
+            default: imm_out_r = 32'b0; 
         endcase
     end
+    
+    assign imm_out = imm_out_r; 
 endmodule

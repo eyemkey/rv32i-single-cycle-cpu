@@ -50,6 +50,7 @@ module cpu_core(
     wire RegWrite; 
     wire [3:0] ALUOp; 
     wire illegal; 
+    wire alu_src_ctrl; 
     
     decoder u_decoder(
         .instr(instr), 
@@ -60,6 +61,7 @@ module cpu_core(
         .funct7(funct7), 
         .RegWrite(RegWrite), 
         .ALUOp(ALUOp), 
+        .alu_src_ctrl(alu_src_ctrl), 
         .illegal(illegal)
     ); 
     
@@ -80,11 +82,29 @@ module cpu_core(
         .rs2_rdata(rs2_data)
     );
     
+    wire [31:0] imm_out; 
+    immgen u_immgen(
+        .instr(instr), 
+        .imm_out(imm_out)
+    ); 
+    
+    wire [31:0] alu_src_2; 
+    reg [31:0] alu_src_2_r; 
+    
+    always @(*) begin
+        if(alu_src_ctrl == 1'b0) begin
+            alu_src_2_r = rs2_data; 
+        end else begin
+            alu_src_2_r = imm_out;  
+        end
+    end
+    
+    assign alu_src_2 = alu_src_2_r; 
     
     wire zero; 
     alu u_alu(
         .a(rs1_data), 
-        .b(rs2_data), 
+        .b(alu_src_2), 
         .op(ALUOp), 
         .y(rd_data), 
         .zero(zero)
