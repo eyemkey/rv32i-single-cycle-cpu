@@ -41,7 +41,7 @@ module alu(
         ALU_SLTU = 4'd9;
      
     
-    wire [4:0] shift_amount = b[4:0]; 
+    wire [4:0] shamt = b[4:0]; 
     wire signed [31:0] a_s = a; 
     wire signed [31:0] b_s = b; 
     
@@ -52,9 +52,9 @@ module alu(
             ALU_AND :  y = a & b;
             ALU_OR  :  y = a | b;
             ALU_XOR :  y = a ^ b;
-            ALU_SLL :  y = a << shift_amount;
-            ALU_SRL :  y = a >> shift_amount;
-            ALU_SRA :  y = a_s >>> shift_amount;          // arithmetic right
+            ALU_SLL :  y = a << shamt;
+            ALU_SRL :  y = a >> shamt;
+            ALU_SRA :  y = a_s >>> shamt;          // arithmetic right
             ALU_SLT :  y = (a_s < b_s) ? {{(31){1'b0}},1'b1} : {32{1'b0}};
             ALU_SLTU: y = (a   < b  ) ? {{(31){1'b0}},1'b1} : {32{1'b0}};
             default :  y = {32{1'b0}};
