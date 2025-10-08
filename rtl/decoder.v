@@ -21,16 +21,19 @@
 
 
 module decoder(
-    input  wire [31:0] instr, 
-    output wire [4:0]  rs1, 
-    output wire [4:0]  rs2, 
-    output wire [4:0]  rd, 
-    output wire [2:0]  funct3, 
-    output wire [6:0]  funct7, 
-    output wire        RegWrite, 
-    output wire [3:0]  ALUOp, 
-    output wire        alu_src_ctrl, 
-    output wire        illegal
+    input  wire [31:0]  instr, 
+    output wire [4:0]   rs1, 
+    output wire [4:0]   rs2, 
+    output wire [4:0]   rd, 
+    output wire [2:0]   funct3, 
+    output wire [6:0]   funct7, 
+    output wire         RegWrite, 
+    output wire [3:0]   ALUOp, 
+    output wire         alu_src_ctrl, 
+    output wire         mem_read, 
+    output wire         mem_write, 
+    output wire [2:0]   mem_to_reg,
+    output wire         illegal
 );
 
     // --- Field extraction ---
@@ -46,6 +49,7 @@ module decoder(
         R_TYPE_OPCODE = 7'b0110011, 
         I_TYPE_OPCODE = 7'bb0010011,
         LOAD_OPCODE = 7'b0000011,
+        STORE_OPCODE = 7'b0100011,
         JALR_OPCODE = 7'b1100111; 
         
 
@@ -62,16 +66,23 @@ module decoder(
         ALU_SLTU = 4'd9, 
         ALU_INV  = 4'd15; 
 
-    reg        reg_write_r; 
-    reg [3:0]  alu_ctrl_r; 
-    reg        illegal_r; 
-    reg        alu_src_r; 
+    reg         reg_write_r; 
+    reg [3:0]   alu_ctrl_r; 
+    reg         illegal_r; 
+    reg         alu_src_r; 
+    reg         mem_read_r; 
+    reg         mem_write_r; 
+    reg [2:0]   mem_to_reg_r;         
     
     always @* begin
         // Safe defaults
         reg_write_r = 1'b0; 
-        alu_ctrl_r  = ALU_INV; 
+        alu_ctrl_r  = ALU_INV;
+        alu_src_r   = 1'b0;  
         illegal_r   = 1'b1; 
+        mem_read_r  = 1'b0; 
+        mem_write_r = 1'b0; 
+        mem_to_reg_r= 1'b0; 
 
         case (opcode)
             R_TYPE_OPCODE: begin
@@ -133,9 +144,19 @@ module decoder(
                     default: illegal_r = 1'b1; 
                 endcase
             end           
-//            LOAD_OPCODE: begin
-                
-//            end
+            LOAD_OPCODE: begin
+                reg_write_r = 1'b1; 
+                alu_src_r   = 1'b1; 
+                alu_ctrl_r  = ALU_ADD; 
+                mem_read_r  = 1'b1; 
+                mem_to_reg_r= 1'b1; 
+            end
+            STORE_OPCODE: begin
+                reg_write_r = 1'b0; 
+                alu_src_r   = 1'b1; 
+                alu_ctrl_r  = ALU_ADD; 
+                mem_write_r = 1'b1;
+            end
 //            JALR_OPCODE: begin
             
 //            end
@@ -143,8 +164,11 @@ module decoder(
         
     end    
 
-    assign RegWrite = reg_write_r; 
-    assign ALUOp    = alu_ctrl_r;
-    assign illegal  = illegal_r; 
+    assign RegWrite     = reg_write_r; 
+    assign ALUOp        = alu_ctrl_r;
+    assign illegal      = illegal_r; 
     assign alu_src_ctrl = alu_src_r; 
+    assign mem_read     = mem_read_r;
+    assign mem_write    = mem_write_r; 
+    assign mem_to_reg   = mem_to_reg_r;  
 endmodule
